@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="Programadepaises1.Views.MainPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:Programadepaises1.Models"
+             xmlns:viewmodels="clr-namespace:Programadepaises1.ViewModels"
+             xmlns:converters="clr-namespace:Programadepaises1.Converters"
+             x:DataType="viewmodels:MainViewModel"
+             Title="Países del Mundo">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:BoolToStarConverter x:Key="BoolToStarConverter" />
+            <converters:BoolToStarColorConverter x:Key="BoolToStarColorConverter" />
+            <converters:BoolToFavoritoTextConverter x:Key="BoolToFavoritoTextConverter" />
+            <converters:BoolToFavoritoColorConverter x:Key="BoolToFavoritoColorConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Barra de búsqueda -->
+        <Border Grid.Row="0" 
+                Margin="15,10"
+                BackgroundColor="White"
+                Stroke="LightGray"
+                StrokeThickness="1">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="25" />
+            </Border.StrokeShape>
+
+            <SearchBar x:Name="SearchBar"
+                       Text="{Binding TextoBusqueda}"
+                       Placeholder="Buscar países..."
+                       BackgroundColor="Transparent"
+                       TextColor="Black"
+                       PlaceholderColor="Gray" />
+        </Border>
+
+        <!-- Lista de países -->
+        <RefreshView Grid.Row="1"
+                     IsRefreshing="{Binding EstaCargando}"
+                     Command="{Binding CargarPaisesCommand}">
+
+            <CollectionView ItemsSource="{Binding Paises}"
+                            BackgroundColor="LightGray">
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:PaisModel">
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="{Binding EsFavorito, Converter={StaticResource BoolToFavoritoTextConverter}}"
+                                               BackgroundColor="{Binding EsFavorito, Converter={StaticResource BoolToFavoritoColorConverter}}"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainViewModel}}, Path=ToggleFavoritoCommand}"
+                                               CommandParameter="{Binding .}" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+
+                            <Border Margin="10,5"
+                                    BackgroundColor="White"
+                                    Stroke="LightGray"
+                                    StrokeThickness="1">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="10" />
+                                </Border.StrokeShape>
+
+                                <Grid Padding="15"
+                                      ColumnDefinitions="60,*,Auto"
+                                      RowDefinitions="Auto,Auto,Auto,Auto">
+
+                                    <!-- Bandera -->
+                                    <Border Grid.Column="0" 
+                                            Grid.RowSpan="4"
+                                            WidthRequest="50"
+                                            HeightRequest="35"
+                                            Stroke="LightGray"
+                                            StrokeThickness="1"
+                                            VerticalOptions="Center">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="5" />
+                                        </Border.StrokeShape>
+
+                                        <Image Source="{Binding BanderaUrl}"
+                                               Aspect="AspectFill" />
+                                    </Border>
+
+                                    <!-- Nombre del país -->
+                                    <Label Grid.Column="1" 
+                                           Grid.Row="0"
+                                           Text="{Binding NombreComun}"
+                                           FontSize="18"
+                                           FontAttributes="Bold"
+                                           TextColor="Black"
+                                           Margin="10,0,0,5" />
+
+                                    <!-- Capital -->
+                                    <Label Grid.Column="1" 
+                                           Grid.Row="1"
+                                           Text="{Binding CapitalTexto, StringFormat='Capital: {0}'}"
+                                           FontSize="14"
+                                           TextColor="Gray"
+                                           Margin="10,0,0,2" />
+
+                                    <!-- Población -->
+                                    <Label Grid.Column="1" 
+                                           Grid.Row="2"
+                                           Text="{Binding PoblacionTexto, StringFormat='Población: {0}'}"
+                                           FontSize="14"
+                                           TextColor="Gray"
+                                           Margin="10,0,0,2" />
+
+                                    <!-- Región -->
+                                    <Label Grid.Column="1" 
+                                           Grid.Row="3"
+                                           Text="{Binding Region, StringFormat='Región: {0}'}"
+                                           FontSize="14"
+                                           TextColor="Gray"
+                                           Margin="10,0,0,0" />
+
+                                    <!-- Botón favorito -->
+                                    <Button Grid.Column="2" 
+                                            Grid.RowSpan="4"
+                                            Text="{Binding EsFavorito, Converter={StaticResource BoolToStarConverter}}"
+                                            FontSize="20"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{Binding EsFavorito, Converter={StaticResource BoolToStarColorConverter}}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainViewModel}}, Path=ToggleFavoritoCommand}"
+                                            CommandParameter="{Binding .}"
+                                            VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+                <CollectionView.EmptyView>
+                    <StackLayout VerticalOptions="CenterAndExpand"
+                                 HorizontalOptions="CenterAndExpand">
+                        <Label Text="No se encontraron países"
+                               FontSize="18"
+                               TextColor="Gray"
+                               HorizontalOptions="Center" />
+                        <Button Text="Cargar países"
+                                Command="{Binding CargarPaisesCommand}"
+                                Margin="0,20,0,0" />
+                    </StackLayout>
+                </CollectionView.EmptyView>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- Indicador de carga -->
+        <ActivityIndicator Grid.Row="1"
+                           IsVisible="{Binding EstaCargando}"
+                           IsRunning="{Binding EstaCargando}"
+                           Color="Blue"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center" />
+    </Grid>
+</ContentPage>
